@@ -17,7 +17,9 @@ public class AuszubildendeController {
 
     @GetMapping
     public List<Auszubildende> getAllAzubis() {
-        return auszubildendeRepository.findAllByOrderByLehrjahrAsc();
+        List<Auszubildende> list = auszubildendeRepository.findAllByOrderByLehrjahrAsc();
+        System.out.println("Gefundene Azubis: " + list.size());
+        return list;
     }
 
     @GetMapping("/{id}")
