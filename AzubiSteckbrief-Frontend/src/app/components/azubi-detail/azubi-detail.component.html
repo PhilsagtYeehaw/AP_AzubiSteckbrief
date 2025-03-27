@@ -6,3 +6,55 @@
   <p><strong>Lehrjahr:</strong> {{ azubi?.lehrjahr }}</p>
   <a routerLink="/" class="text-blue-600 hover:underline">Zurück zur Liste</a>
 </div>
+
+<div class="button-container">
+  <button (click)="bewertungErstellen('referat')">
+    Bewertung für Referat erstellen
+  </button>
+  <button (click)="bewertungErstellen('schulung')">
+    Bewertung für Schulung erstellen
+  </button>
+</div>
+
+<!-- Dropdown Referat -->
+<div *ngIf="zeigeReferatDropdown">
+  <label for="referat">Referat auswählen:</label>
+  <select id="referat" (change)="referatAuswaehlen($event)">
+    <option disabled selected>Bitte wählen...</option>
+    <option *ngFor="let ref of referate" [value]="ref.referat_id">
+      Referat {{ ref.abteilung }} {{ ref.referatsgruppe }} {{ ref.referatsgruppennummer }}
+    </option>
+  </select>
+</div>
+
+<!-- Dropdown Schulung -->
+<div *ngIf="zeigeSchulungDropdown">
+  <label for="schulung">Schulung auswählen:</label>
+  <select id="schulung" (change)="schulungAuswaehlen($event)">
+    <option disabled selected>Bitte wählen...</option>
+    <option *ngFor="let sch of schulungen" [value]="sch.schulung_id">
+      {{ sch.schulung }}
+    </option>
+  </select>
+</div>
+
+
+<div *ngIf="bewertungen.length > 0">
+  <h3>Vorhandene Bewertungen</h3>
+  <ul>
+    <li *ngFor="let b of bewertungen">
+      <span>
+        Bewertung -
+        <span *ngIf="b.referat">
+          Referat {{ b.referat.abteilung }} {{ b.referat.referatsgruppe }} {{ b.referat.referatsgruppennummer }}
+        </span>
+        <span *ngIf="b.schulung">
+          Schulung {{ b.schulung.schulung }}
+        </span>
+      </span>
+      <button (click)="bewertungAnzeigen(b)">Anzeigen</button>
+
+    </li>
+  </ul>
+</div>
+
