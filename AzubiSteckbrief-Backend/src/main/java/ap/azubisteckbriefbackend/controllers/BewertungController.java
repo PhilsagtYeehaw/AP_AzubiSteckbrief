@@ -1,14 +1,15 @@
 package ap.azubisteckbriefbackend.controllers;
 
-import ap.azubisteckbriefbackend.entities.Auszubildende;
-import ap.azubisteckbriefbackend.entities.Bewertung;
-import ap.azubisteckbriefbackend.repositories.AuszubildendeRepository;
-import ap.azubisteckbriefbackend.repositories.BewertungRepository;
+import ap.azubisteckbriefbackend.dtos.BewertungRequestDTO;
+import ap.azubisteckbriefbackend.entities.*;
+import ap.azubisteckbriefbackend.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bewertungen")
@@ -21,20 +22,65 @@ public class BewertungController {
     @Autowired
     private AuszubildendeRepository azubiRepository;
 
+    @Autowired
+    private ReferatRepository referatRepository;
+
+    @Autowired
+    private SchulungRepository schulungRepository;
+
+    @Autowired
+    private UnterpunktRepository unterpunktRepository;
+
+    @Autowired
+    private ErledigtesRepository erledigtesRepository;
+
     @PostMapping
-    public ResponseEntity<Bewertung> createBewertung(@RequestBody Bewertung bewertung) {
-        if (bewertung.getAzubi() == null || bewertung.getAzubi().getAzubi_id() == null) {
-            return ResponseEntity.badRequest().build();
+    @Transactional
+    public ResponseEntity<?> createBewertung(@RequestBody BewertungRequestDTO dto) {
+        if (dto.getAzubiId() == null) {
+            return ResponseEntity.badRequest().body("azubiId fehlt");
         }
 
-        // Optional: sicherstellen, dass Azubi existiert
-        Auszubildende azubi = azubiRepository.findById(bewertung.getAzubi().getAzubi_id())
+        Auszubildende azubi = azubiRepository.findById(dto.getAzubiId())
                 .orElseThrow(() -> new RuntimeException("Azubi nicht gefunden"));
 
-        bewertung.setAzubi(azubi);
+        Bewertung bewertung;
 
-        Bewertung saved = bewertungRepository.save(bewertung);
-        return ResponseEntity.ok(saved);
+        if (dto.getBewertungId() != null) {
+            // Vorhandene Bewertung laden
+            bewertung = bewertungRepository.findById(dto.getBewertungId())
+                    .orElseThrow(() -> new RuntimeException("Bewertung nicht gefunden: " + dto.getBewertungId()));
+
+            // Alte Erledigtes-Einträge löschen
+            erledigtesRepository.deleteByBewertung(bewertung);
+        } else {
+            // Neue Bewertung anlegen
+            bewertung = new Bewertung();
+            bewertung.setAzubi(azubi);
+
+            if (dto.getReferatId() != null) {
+                Referat referat = referatRepository.findById(dto.getReferatId())
+                        .orElseThrow(() -> new RuntimeException("Referat nicht gefunden"));
+                bewertung.setReferat(referat);
+            }
+
+            if (dto.getSchulungId() != null) {
+                Schulung schulung = schulungRepository.findById(dto.getSchulungId())
+                        .orElseThrow(() -> new RuntimeException("Schulung nicht gefunden"));
+                bewertung.setSchulung(schulung);
+            }
+
+            bewertung = bewertungRepository.save(bewertung);
+        }
+
+        for (BewertungRequestDTO.PunktStatus punkt : dto.getErledigtePunkte()) {
+            Unterpunkt unterpunkt = unterpunktRepository.findById(punkt.getUnterpunktId())
+                    .orElseThrow(() -> new RuntimeException("Unterpunkt nicht gefunden: " + punkt.getUnterpunktId()));
+            Erledigtes erledigtes = new Erledigtes(bewertung, unterpunkt, punkt.isStatus());
+            erledigtesRepository.save(erledigtes);
+        }
+
+        return ResponseEntity.ok().body(Map.of("message", "Bewertung inkl. Punkte gespeichert."));
     }
 
     @GetMapping
@@ -43,7 +89,6 @@ public class BewertungController {
             @RequestParam(required = false) Long referatId,
             @RequestParam(required = false) Long schulungId
     ) {
-        // Beispielhaft – ggf. nach deinen Anforderungen anpassen
         if (referatId != null) {
             return bewertungRepository.findByAzubi_AzubiIdAndReferat_ReferatId(azubiId, referatId);
         } else if (schulungId != null) {
@@ -52,5 +97,29 @@ public class BewertungController {
             return bewertungRepository.findByAzubi_AzubiId(azubiId);
         }
     }
-}
 
+    @GetMapping("/bestehende")
+    public ResponseEntity<?> findeVorhandeneBewertung(
+            @RequestParam Long azubiId,
+            @RequestParam(required = false) Long referatId,
+            @RequestParam(required = false) Long schulungId
+    ) {
+        List<Bewertung> ergebnisse;
+
+        if (referatId != null) {
+            ergebnisse = bewertungRepository.findByAzubi_AzubiIdAndReferat_ReferatId(azubiId, referatId);
+        } else if (schulungId != null) {
+            ergebnisse = bewertungRepository.findByAzubi_AzubiIdAndSchulung_SchulungId(azubiId, schulungId);
+        } else {
+            return ResponseEntity.badRequest().body("referatId oder schulungId erforderlich.");
+        }
+
+        if (ergebnisse.isEmpty()) {
+            return ResponseEntity.ok().build(); // keine Bewertung vorhanden
+        }
+
+        Bewertung vorhandene = ergebnisse.get(0);
+
+        return ResponseEntity.ok(vorhandene.getBewertungId());
+    }
+}
