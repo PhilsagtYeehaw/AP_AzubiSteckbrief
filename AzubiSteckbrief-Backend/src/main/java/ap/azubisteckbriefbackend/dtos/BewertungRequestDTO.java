@@ -8,6 +8,7 @@ public class BewertungRequestDTO {
     private Long schulungId;
     private Long bewertungId; // 👈 HINZUGEFÜGT
     private List<PunktStatus> erledigtePunkte;
+    private List<InhaltNote> inhaltNoten; // 👈 NEU
 
     public Long getAzubiId() {
         return azubiId;
@@ -49,6 +50,14 @@ public class BewertungRequestDTO {
         this.erledigtePunkte = erledigtePunkte;
     }
 
+    public List<InhaltNote> getInhaltNoten() {
+        return inhaltNoten;
+    }
+
+    public void setInhaltNoten(List<InhaltNote> inhaltNoten) {
+        this.inhaltNoten = inhaltNoten;
+    }
+
     public static class PunktStatus {
         private Long unterpunktId;
         private boolean status;
@@ -67,6 +76,27 @@ public class BewertungRequestDTO {
 
         public void setStatus(boolean status) {
             this.status = status;
+        }
+    }
+
+    public static class InhaltNote {
+        private Long leistungsbewertungInhaltId;
+        private String note;
+
+        public Long getLeistungsbewertungInhaltId() {
+            return leistungsbewertungInhaltId;
+        }
+
+        public void setLeistungsbewertungInhaltId(Long leistungsbewertungInhaltId) {
+            this.leistungsbewertungInhaltId = leistungsbewertungInhaltId;
+        }
+
+        public String getNote() {
+            return note;
+        }
+
+        public void setNote(String note) {
+            this.note = note;
         }
     }
 }

@@ -4,12 +4,13 @@ import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { VermittlungsstrukturComponent } from '../vermittlungsstruktur/vermittlungsstruktur.component';
+import {NotenTabelleComponent} from '../noten-tabelle/noten-tabelle.component';
 
 @Component({
   selector: 'app-bewertung-form',
   templateUrl: './bewertung-form.component.html',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, VermittlungsstrukturComponent],
+  imports: [CommonModule, ReactiveFormsModule, VermittlungsstrukturComponent, NotenTabelleComponent],
 })
 export class BewertungFormComponent implements OnInit {
   azubiId!: number;
@@ -19,6 +20,8 @@ export class BewertungFormComponent implements OnInit {
 
   ausgewaehltePunkte: Record<number, boolean> = {};
   ausgewaehlteTexte: string[] = [];
+
+  notenAuswahl: { [id: number]: string } = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -55,6 +58,17 @@ export class BewertungFormComponent implements OnInit {
         if (id) {
           this.bewertungId = id;
           console.log('Vorhandene Bewertung wird überschrieben, ID:', this.bewertungId);
+          // 🔁 Lade Noten
+          this.http.get<any[]>(`/api/bewertungen/${this.bewertungId}/noten`).subscribe({
+            next: (noten) => {
+              this.notenAuswahl = {};
+              for (const eintrag of noten) {
+                this.notenAuswahl[eintrag.leistungsbewertungInhaltId] = eintrag.note;
+              }
+              console.log('Vorhandene Noten geladen:', this.notenAuswahl);
+            },
+            error: (err) => console.error('Fehler beim Laden der Noten:', err)
+          });
         }
       },
       error: (err) => {
@@ -82,6 +96,14 @@ export class BewertungFormComponent implements OnInit {
       azubiId: this.azubiId,
       erledigtePunkte
     };
+
+    const inhaltNoten = Object.entries(this.notenAuswahl)
+      .filter(([_, note]) => !!note)
+      .map(([id, note]) => ({
+        leistungsbewertungInhaltId: +id,
+        note
+      }));
+    payload.inhaltNoten = inhaltNoten;
 
     if (this.referatId) payload.referatId = this.referatId;
     if (this.schulungId) payload.schulungId = this.schulungId;

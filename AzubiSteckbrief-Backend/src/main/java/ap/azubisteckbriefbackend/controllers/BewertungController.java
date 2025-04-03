@@ -1,6 +1,7 @@
 package ap.azubisteckbriefbackend.controllers;
 
 import ap.azubisteckbriefbackend.dtos.BewertungRequestDTO;
+import ap.azubisteckbriefbackend.dtos.LeistungsbewertungInhaltDTO;
 import ap.azubisteckbriefbackend.entities.*;
 import ap.azubisteckbriefbackend.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,23 +18,14 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:4200")
 public class BewertungController {
 
-    @Autowired
-    private BewertungRepository bewertungRepository;
-
-    @Autowired
-    private AuszubildendeRepository azubiRepository;
-
-    @Autowired
-    private ReferatRepository referatRepository;
-
-    @Autowired
-    private SchulungRepository schulungRepository;
-
-    @Autowired
-    private UnterpunktRepository unterpunktRepository;
-
-    @Autowired
-    private ErledigtesRepository erledigtesRepository;
+    @Autowired private BewertungRepository bewertungRepository;
+    @Autowired private AuszubildendeRepository azubiRepository;
+    @Autowired private ReferatRepository referatRepository;
+    @Autowired private SchulungRepository schulungRepository;
+    @Autowired private UnterpunktRepository unterpunktRepository;
+    @Autowired private ErledigtesRepository erledigtesRepository;
+    @Autowired private BenotungInhaltRepository benotungInhaltRepository;
+    @Autowired private LeistungsbewertungInhaltRepository leistungsbewertungInhalteRepository;
 
     @PostMapping
     @Transactional
@@ -47,12 +40,12 @@ public class BewertungController {
         Bewertung bewertung;
 
         if (dto.getBewertungId() != null) {
-            // Vorhandene Bewertung laden
+            // Bewertung überschreiben
             bewertung = bewertungRepository.findById(dto.getBewertungId())
-                    .orElseThrow(() -> new RuntimeException("Bewertung nicht gefunden: " + dto.getBewertungId()));
+                    .orElseThrow(() -> new RuntimeException("Bewertung nicht gefunden"));
 
-            // Alte Erledigtes-Einträge löschen
             erledigtesRepository.deleteByBewertung(bewertung);
+            benotungInhaltRepository.deleteByBewertung(bewertung);
         } else {
             // Neue Bewertung anlegen
             bewertung = new Bewertung();
@@ -73,6 +66,7 @@ public class BewertungController {
             bewertung = bewertungRepository.save(bewertung);
         }
 
+        // ✅ Erledigte Punkte speichern
         for (BewertungRequestDTO.PunktStatus punkt : dto.getErledigtePunkte()) {
             Unterpunkt unterpunkt = unterpunktRepository.findById(punkt.getUnterpunktId())
                     .orElseThrow(() -> new RuntimeException("Unterpunkt nicht gefunden: " + punkt.getUnterpunktId()));
@@ -80,22 +74,22 @@ public class BewertungController {
             erledigtesRepository.save(erledigtes);
         }
 
-        return ResponseEntity.ok().body(Map.of("message", "Bewertung inkl. Punkte gespeichert."));
-    }
+        // ✅ Noten speichern
+        if (dto.getInhaltNoten() != null) {
+            for (BewertungRequestDTO.InhaltNote noteDto : dto.getInhaltNoten()) {
+                LeistungsbewertungInhalt inhalt = leistungsbewertungInhalteRepository.findById(noteDto.getLeistungsbewertungInhaltId())
+                        .orElseThrow(() -> new RuntimeException("Inhalt nicht gefunden: " + noteDto.getLeistungsbewertungInhaltId()));
 
-    @GetMapping
-    public List<Bewertung> getBewertungen(
-            @RequestParam Long azubiId,
-            @RequestParam(required = false) Long referatId,
-            @RequestParam(required = false) Long schulungId
-    ) {
-        if (referatId != null) {
-            return bewertungRepository.findByAzubi_AzubiIdAndReferat_ReferatId(azubiId, referatId);
-        } else if (schulungId != null) {
-            return bewertungRepository.findByAzubi_AzubiIdAndSchulung_SchulungId(azubiId, schulungId);
-        } else {
-            return bewertungRepository.findByAzubi_AzubiId(azubiId);
+                BenotungInhalt note = new BenotungInhalt();
+                note.setBewertung(bewertung);
+                note.setLeistungsbewertungInhalt(inhalt);
+                note.setBenotung(noteDto.getNote());
+
+                benotungInhaltRepository.save(note);
+            }
         }
+
+        return ResponseEntity.ok().body(Map.of("message", "Bewertung inkl. Punkte und Noten gespeichert."));
     }
 
     @GetMapping("/bestehende")
@@ -119,7 +113,57 @@ public class BewertungController {
         }
 
         Bewertung vorhandene = ergebnisse.get(0);
-
         return ResponseEntity.ok(vorhandene.getBewertungId());
     }
+
+    @GetMapping
+    public List<Bewertung> getBewertungen(
+            @RequestParam Long azubiId,
+            @RequestParam(required = false) Long referatId,
+            @RequestParam(required = false) Long schulungId
+    ) {
+        if (referatId != null) {
+            return bewertungRepository.findByAzubi_AzubiIdAndReferat_ReferatId(azubiId, referatId);
+        } else if (schulungId != null) {
+            return bewertungRepository.findByAzubi_AzubiIdAndSchulung_SchulungId(azubiId, schulungId);
+        } else {
+            return bewertungRepository.findByAzubi_AzubiId(azubiId);
+        }
+    }
+
+    @GetMapping("/leistungsbewertungInhalte")
+    public List<LeistungsbewertungInhaltDTO> getLeistungsbewertungInhalte() {
+        List<LeistungsbewertungInhalt> inhalte = leistungsbewertungInhalteRepository.findAll();
+
+        return inhalte.stream()
+                .map(i -> new LeistungsbewertungInhaltDTO(
+                        i.getLeistungsbewertungInhaltId(),
+                        i.getLeistungsbewertungInhalt(),
+                        i.getLeistungsbewertungKategorie() != null ? i.getLeistungsbewertungKategorie().getLeistungsbewertungKategorie() : null
+                ))
+                .toList();
+    }
+
+    @GetMapping("/{bewertungId}/noten")
+    public ResponseEntity<?> getNotenZurBewertung(@PathVariable Long bewertungId) {
+        Bewertung bewertung = bewertungRepository.findById(bewertungId)
+                .orElseThrow(() -> new RuntimeException("Bewertung nicht gefunden"));
+
+        List<BenotungInhalt> benotungen = benotungInhaltRepository.findByBewertung(bewertung);
+
+        List<Map<String, Object>> result = benotungen.stream()
+                .map(b -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("leistungsbewertungInhaltId", b.getLeistungsbewertungInhalt().getLeistungsbewertungInhaltId());
+                    map.put("note", b.getBenotung());
+                    return map;
+                })
+                .toList();
+
+
+        return ResponseEntity.ok(result);
+    }
+
+
+
 }
