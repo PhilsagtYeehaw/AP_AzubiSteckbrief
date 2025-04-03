@@ -1,0 +1,34 @@
+<div class="p-4">
+  <button (click)="toggleDropdown()" class="bg-blue-500 text-white px-4 py-2 rounded">
+    Vermittlungsstruktur anzeigen
+  </button>
+
+  <div *ngIf="dropdownGeoeffnet" class="mt-4">
+    <div *ngFor="let beruf of vermittlungsstruktur" class="mb-4 border p-3 rounded shadow">
+      <div (click)="toggleBeruf(beruf)" class="font-bold cursor-pointer">
+        {{ beruf.name }}
+      </div>
+
+      <div *ngIf="offeneBerufe.includes(beruf.id)" class="ml-4 mt-2">
+        <div *ngFor="let vermittlung of beruf.vermittlungen" class="mb-2">
+          <div (click)="toggleVermittlung(vermittlung)" class="font-medium cursor-pointer">
+            {{ vermittlung.titel }}
+          </div>
+
+          <div *ngIf="offeneVermittlungen.includes(vermittlung.id)" class="ml-4 mt-2">
+            <div *ngFor="let punkt of vermittlung.punkte">
+              <label>
+                <input
+                  type="checkbox"
+                  [(ngModel)]="ausgewaehltePunkte[punkt.id]"
+                  (change)="checkboxGeaendert(punkt)"
+                />
+                {{ punkt.beschreibung }}
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
