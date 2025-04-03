@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -142,4 +143,27 @@ public class BewertungController {
                 ))
                 .toList();
     }
+
+    @GetMapping("/{bewertungId}/noten")
+    public ResponseEntity<?> getNotenZurBewertung(@PathVariable Long bewertungId) {
+        Bewertung bewertung = bewertungRepository.findById(bewertungId)
+                .orElseThrow(() -> new RuntimeException("Bewertung nicht gefunden"));
+
+        List<BenotungInhalt> benotungen = benotungInhaltRepository.findByBewertung(bewertung);
+
+        List<Map<String, Object>> result = benotungen.stream()
+                .map(b -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("leistungsbewertungInhaltId", b.getLeistungsbewertungInhalt().getLeistungsbewertungInhaltId());
+                    map.put("note", b.getBenotung());
+                    return map;
+                })
+                .toList();
+
+
+        return ResponseEntity.ok(result);
+    }
+
+
+
 }

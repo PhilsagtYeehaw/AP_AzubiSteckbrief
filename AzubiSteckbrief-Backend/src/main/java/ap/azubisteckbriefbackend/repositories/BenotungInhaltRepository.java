@@ -10,5 +10,6 @@ import java.util.List;
 public interface BenotungInhaltRepository extends JpaRepository<BenotungInhalt, BenotungInhaltId> {
     List<BenotungInhalt> findByBewertung_BewertungId(Long bewertungId);
     void deleteByBewertung(Bewertung bewertung);
+    List<BenotungInhalt> findByBewertung(Bewertung bewertung);
 }
 
