@@ -1,4 +1,12 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  OnChanges,
+  SimpleChanges
+} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -9,8 +17,9 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [FormsModule, CommonModule],
 })
-export class VermittlungsstrukturComponent implements OnInit {
+export class VermittlungsstrukturComponent implements OnInit, OnChanges {
   @Input() azubiId!: number;
+  @Input() bewertungId?: number;
   @Output() punkteGeaendert = new EventEmitter<number[]>();
   @Output() punktTexteGeaendert = new EventEmitter<string[]>();
 
@@ -23,11 +32,23 @@ export class VermittlungsstrukturComponent implements OnInit {
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    this.ladeVermittlungsstruktur();
+    if (this.azubiId) {
+      this.ladeVermittlungsstruktur();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['bewertungId'] && !changes['bewertungId'].firstChange) {
+      this.ladeVermittlungsstruktur();
+    }
   }
 
   ladeVermittlungsstruktur() {
-    this.http.get<any[]>(`/api/vermittlungsstruktur/${this.azubiId}`).subscribe({
+    const url = this.bewertungId
+      ? `/api/vermittlungsstruktur/struktur/${this.bewertungId}`   // bestehende Bewertung
+      : `/api/vermittlungsstruktur/naked/${this.azubiId}`;         // neue Bewertung → keine Punkte
+
+    this.http.get<any[]>(url).subscribe({
       next: (struktur) => {
         this.vermittlungsstruktur = struktur;
 
@@ -39,13 +60,11 @@ export class VermittlungsstrukturComponent implements OnInit {
           });
         });
 
-        // 🔁 IDs der aktivierten Punkte ermitteln
         const selektierte = Object.entries(this.ausgewaehltePunkte)
           .filter(([_, val]) => val)
           .map(([id]) => +id);
         this.punkteGeaendert.emit(selektierte);
 
-        // ✅ Texte zu den selektierten Punkten
         const selektierteTexte = struktur
           .flatMap((beruf: any) => beruf.vermittlungen)
           .flatMap((vermittlung: any) => vermittlung.unterpunkteDTO)

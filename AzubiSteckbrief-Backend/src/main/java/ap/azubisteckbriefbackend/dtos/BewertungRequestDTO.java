@@ -99,4 +99,34 @@ public class BewertungRequestDTO {
             this.note = note;
         }
     }
+
+    public static class SozialverhaltenNote {
+        private Long leistungsbewertungSozialverhaltenId;
+        private String note;
+
+        public Long getLeistungsbewertungSozialverhaltenId() {
+            return leistungsbewertungSozialverhaltenId;
+        }
+
+        public void setLeistungsbewertungSozialverhaltenId(Long leistungsbewertungSozialverhaltenId) {
+            this.leistungsbewertungSozialverhaltenId = leistungsbewertungSozialverhaltenId;
+        }
+
+        public String getNote() {
+            return note;
+        }
+
+        public void setNote(String note) {
+            this.note = note;
+        }
+    }
+    private List<SozialverhaltenNote> sozialverhaltenNoten;
+
+    public List<SozialverhaltenNote> getSozialverhaltenNoten() {
+        return sozialverhaltenNoten;
+    }
+
+    public void setSozialverhaltenNoten(List<SozialverhaltenNote> sozialverhaltenNoten) {
+        this.sozialverhaltenNoten = sozialverhaltenNoten;
+    }
 }

@@ -1,0 +1,12 @@
+<h3 class="text-lg font-semibold mb-2">Sozialzeug</h3>
+<table>
+  <tr *ngFor="let item of sozialverhaltenInhalte">
+    <td>{{ item.sozialverhalten }}</td>
+    <td>
+      <select [(ngModel)]="noten[item.id]" (ngModelChange)="onNoteChange(item.id, $event)">
+        <option [ngValue]="null">---</option>
+        <option *ngFor="let option of optionen" [value]="option">{{ option }}</option>
+      </select>
+    </td>
+  </tr>
+</table>
