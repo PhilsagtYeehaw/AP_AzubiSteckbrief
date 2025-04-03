@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import {VermittlungsstrukturComponent} from '../vermittlungsstruktur/vermittlungsstruktur.component';
+import { VermittlungsstrukturComponent } from '../vermittlungsstruktur/vermittlungsstruktur.component';
 
 @Component({
   selector: 'app-bewertung-form',
@@ -16,7 +16,8 @@ export class BewertungFormComponent implements OnInit {
   referatId?: number;
   schulungId?: number;
 
-  ausgewaehltePunkte: number[] = [];
+  // Merkt sich den Status der Checkboxen (true = ausgewählt)
+  ausgewaehltePunkte: Record<number, boolean> = {};
 
   constructor(private route: ActivatedRoute, private http: HttpClient) {}
 
@@ -33,21 +34,28 @@ export class BewertungFormComponent implements OnInit {
     });
   }
 
+  // Wird vom VermittlungsstrukturComponent aufgerufen
   onPunkteGeaendert(punkteIds: number[]) {
-    this.ausgewaehltePunkte = punkteIds;
+    // Setzt alle erhaltenen IDs auf true
+    this.ausgewaehltePunkte = {};
+    punkteIds.forEach(id => this.ausgewaehltePunkte[id] = true);
+
     console.log('Ausgewählte Punkte:', this.ausgewaehltePunkte);
   }
 
   bewertungSpeichern() {
     const body: any = {
-      azubi: { azubi_id: this.azubiId },
-      erledigte_punkte_ids: this.ausgewaehltePunkte
+      azubiId: this.azubiId,
+      erledigtePunkte: Object.entries(this.ausgewaehltePunkte).map(([id, status]) => ({
+        unterpunktId: +id,
+        status: status === true
+      }))
     };
 
     if (this.referatId) {
-      body.referat = { referat_id: this.referatId };
+      body.referatId = this.referatId;
     } else if (this.schulungId) {
-      body.schulung = { schulung_id: this.schulungId };
+      body.schulungId = this.schulungId;
     }
 
     console.log('Sende Payload:', body);
