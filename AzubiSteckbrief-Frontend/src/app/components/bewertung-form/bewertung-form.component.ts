@@ -4,12 +4,13 @@ import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { VermittlungsstrukturComponent } from '../vermittlungsstruktur/vermittlungsstruktur.component';
+import {NotenTabelleComponent} from '../noten-tabelle/noten-tabelle.component';
 
 @Component({
   selector: 'app-bewertung-form',
   templateUrl: './bewertung-form.component.html',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, VermittlungsstrukturComponent],
+  imports: [CommonModule, ReactiveFormsModule, VermittlungsstrukturComponent, NotenTabelleComponent],
 })
 export class BewertungFormComponent implements OnInit {
   azubiId!: number;
@@ -19,6 +20,8 @@ export class BewertungFormComponent implements OnInit {
 
   ausgewaehltePunkte: Record<number, boolean> = {};
   ausgewaehlteTexte: string[] = [];
+
+  notenAuswahl: { [id: number]: string } = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -82,6 +85,14 @@ export class BewertungFormComponent implements OnInit {
       azubiId: this.azubiId,
       erledigtePunkte
     };
+
+    const inhaltNoten = Object.entries(this.notenAuswahl)
+      .filter(([_, note]) => !!note)
+      .map(([id, note]) => ({
+        leistungsbewertungInhaltId: +id,
+        note
+      }));
+    payload.inhaltNoten = inhaltNoten;
 
     if (this.referatId) payload.referatId = this.referatId;
     if (this.schulungId) payload.schulungId = this.schulungId;

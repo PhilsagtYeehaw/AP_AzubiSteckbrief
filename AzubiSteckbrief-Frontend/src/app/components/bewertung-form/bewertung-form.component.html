@@ -1,5 +1,10 @@
 <h2>Bewertung erstellen</h2>
 
+<app-noten-tabelle
+  [noten]="notenAuswahl"
+  (notenGeaendert)="notenAuswahl = $event">
+</app-noten-tabelle>
+
 <app-vermittlungsstruktur
   [azubiId]="azubiId"
   (punkteGeaendert)="onPunkteGeaendert($event)"
