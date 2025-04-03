@@ -7,6 +7,7 @@
 
 <app-vermittlungsstruktur
   [azubiId]="azubiId"
+  [bewertungId]="bewertungId"
   (punkteGeaendert)="onPunkteGeaendert($event)"
   (punktTexteGeaendert)="onPunktTexteGeaendert($event)">
 </app-vermittlungsstruktur>
@@ -16,6 +17,13 @@
 </ul>
 
 <br />
+
+<app-sozialverhalten-tabelle
+  [noten]="sozialverhaltenAuswahl"
+  (notenGeaendert)="sozialverhaltenAuswahl = $event">
+</app-sozialverhalten-tabelle>
+
+
 
 <button
   (click)="bewertungSpeichern()"

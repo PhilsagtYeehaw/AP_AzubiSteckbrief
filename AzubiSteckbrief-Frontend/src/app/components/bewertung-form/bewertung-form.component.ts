@@ -5,12 +5,13 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { VermittlungsstrukturComponent } from '../vermittlungsstruktur/vermittlungsstruktur.component';
 import {NotenTabelleComponent} from '../noten-tabelle/noten-tabelle.component';
+import {SozialverhaltenTabelleComponent} from '../sozialverhalten-tabelle/sozialverhalten-tabelle.component';
 
 @Component({
   selector: 'app-bewertung-form',
   templateUrl: './bewertung-form.component.html',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, VermittlungsstrukturComponent, NotenTabelleComponent],
+  imports: [CommonModule, ReactiveFormsModule, VermittlungsstrukturComponent, NotenTabelleComponent, SozialverhaltenTabelleComponent],
 })
 export class BewertungFormComponent implements OnInit {
   azubiId!: number;
@@ -22,6 +23,9 @@ export class BewertungFormComponent implements OnInit {
   ausgewaehlteTexte: string[] = [];
 
   notenAuswahl: { [id: number]: string } = {};
+
+  sozialverhaltenNoten: { [id: number]: string } = {};
+  sozialverhaltenAuswahl: { [id: number]: string } = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -58,14 +62,28 @@ export class BewertungFormComponent implements OnInit {
         if (id) {
           this.bewertungId = id;
           console.log('Vorhandene Bewertung wird überschrieben, ID:', this.bewertungId);
-          // 🔁 Lade Noten
-          this.http.get<any[]>(`/api/bewertungen/${this.bewertungId}/noten`).subscribe({
-            next: (noten) => {
-              this.notenAuswahl = {};
-              for (const eintrag of noten) {
-                this.notenAuswahl[eintrag.leistungsbewertungInhaltId] = eintrag.note;
+
+          // ✅ Noten nachladen
+          this.http.get<any>(`/api/bewertungen/${id}/noten`).subscribe({
+            next: (notenData) => {
+              // Fachliche Noten
+              if (notenData.inhaltNoten) {
+                notenData.inhaltNoten.forEach((n: any) => {
+                  this.notenAuswahl[n.leistungsbewertungInhaltId] = n.note;
+                });
               }
-              console.log('Vorhandene Noten geladen:', this.notenAuswahl);
+
+              // Sozialverhalten Noten
+              if (notenData.sozialverhaltenNoten) {
+                notenData.sozialverhaltenNoten.forEach((n: any) => {
+                  this.sozialverhaltenAuswahl[n.leistungsbewertungSozialverhaltenId] = n.note;
+                });
+              }
+
+              console.log('Geladene Noten:', {
+                fachlich: this.notenAuswahl,
+                sozial: this.sozialverhaltenAuswahl
+              });
             },
             error: (err) => console.error('Fehler beim Laden der Noten:', err)
           });
@@ -87,6 +105,9 @@ export class BewertungFormComponent implements OnInit {
     this.ausgewaehlteTexte = texte;
   }
 
+  onSozialverhaltenGeaendert(noten: { [id: number]: string }) {
+    this.sozialverhaltenNoten = noten;
+  }
 
   bewertungSpeichern() {
     const erledigtePunkte = Object.entries(this.ausgewaehltePunkte)
@@ -104,6 +125,15 @@ export class BewertungFormComponent implements OnInit {
         note
       }));
     payload.inhaltNoten = inhaltNoten;
+
+    const sozialverhaltenNoten = Object.entries(this.sozialverhaltenAuswahl)
+      .filter(([_, note]) => !!note)
+      .map(([id, note]) => ({
+        leistungsbewertungSozialverhaltenId: +id,
+        note
+      }));
+    payload.sozialverhaltenNoten = sozialverhaltenNoten;
+
 
     if (this.referatId) payload.referatId = this.referatId;
     if (this.schulungId) payload.schulungId = this.schulungId;

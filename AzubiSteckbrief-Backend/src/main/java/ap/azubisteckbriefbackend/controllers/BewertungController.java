@@ -27,6 +27,10 @@ public class BewertungController {
     @Autowired private BenotungInhaltRepository benotungInhaltRepository;
     @Autowired private LeistungsbewertungInhaltRepository leistungsbewertungInhalteRepository;
 
+    // NEU für Sozialverhalten
+    @Autowired private LeistungsbewertungSozialverhaltenRepository leistungsbewertungSozialverhaltenRepository;
+    @Autowired private BenotungSozialverhaltenRepository benotungSozialverhaltenRepository;
+
     @PostMapping
     @Transactional
     public ResponseEntity<?> createBewertung(@RequestBody BewertungRequestDTO dto) {
@@ -46,6 +50,9 @@ public class BewertungController {
 
             erledigtesRepository.deleteByBewertung(bewertung);
             benotungInhaltRepository.deleteByBewertung(bewertung);
+            // NEU: Vorherige Sozialverhalten-Noten löschen
+            benotungSozialverhaltenRepository.deleteByBewertung(bewertung);
+
         } else {
             // Neue Bewertung anlegen
             bewertung = new Bewertung();
@@ -74,7 +81,7 @@ public class BewertungController {
             erledigtesRepository.save(erledigtes);
         }
 
-        // ✅ Noten speichern
+        // ✅ Fachliche Noten speichern
         if (dto.getInhaltNoten() != null) {
             for (BewertungRequestDTO.InhaltNote noteDto : dto.getInhaltNoten()) {
                 LeistungsbewertungInhalt inhalt = leistungsbewertungInhalteRepository.findById(noteDto.getLeistungsbewertungInhaltId())
@@ -89,7 +96,22 @@ public class BewertungController {
             }
         }
 
-        return ResponseEntity.ok().body(Map.of("message", "Bewertung inkl. Punkte und Noten gespeichert."));
+        // ✅ Sozialverhalten Noten speichern
+        if (dto.getSozialverhaltenNoten() != null) {
+            for (BewertungRequestDTO.SozialverhaltenNote noteDto : dto.getSozialverhaltenNoten()) {
+                LeistungsbewertungSozialverhalten sozial = leistungsbewertungSozialverhaltenRepository.findById(noteDto.getLeistungsbewertungSozialverhaltenId())
+                        .orElseThrow(() -> new RuntimeException("Sozialverhalten nicht gefunden: " + noteDto.getLeistungsbewertungSozialverhaltenId()));
+
+                BenotungSozialverhalten note = new BenotungSozialverhalten();
+                note.setBewertung(bewertung);
+                note.setLeistungsbewertungSozialverhalten(sozial);
+                note.setBenotung(noteDto.getNote());
+
+                benotungSozialverhaltenRepository.save(note);
+            }
+        }
+
+        return ResponseEntity.ok().body(Map.of("message", "Bewertung inkl. Punkte, Noten und Sozialverhalten gespeichert."));
     }
 
     @GetMapping("/bestehende")
@@ -109,7 +131,7 @@ public class BewertungController {
         }
 
         if (ergebnisse.isEmpty()) {
-            return ResponseEntity.ok().build(); // keine Bewertung vorhanden
+            return ResponseEntity.ok().build();
         }
 
         Bewertung vorhandene = ergebnisse.get(0);
@@ -149,9 +171,9 @@ public class BewertungController {
         Bewertung bewertung = bewertungRepository.findById(bewertungId)
                 .orElseThrow(() -> new RuntimeException("Bewertung nicht gefunden"));
 
+        // ✅ Fachliche Noten
         List<BenotungInhalt> benotungen = benotungInhaltRepository.findByBewertung(bewertung);
-
-        List<Map<String, Object>> result = benotungen.stream()
+        List<Map<String, Object>> inhaltNoten = benotungen.stream()
                 .map(b -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("leistungsbewertungInhaltId", b.getLeistungsbewertungInhalt().getLeistungsbewertungInhaltId());
@@ -160,10 +182,27 @@ public class BewertungController {
                 })
                 .toList();
 
+        // ✅ Sozialverhalten Noten
+        List<BenotungSozialverhalten> sozialNoten = benotungSozialverhaltenRepository.findByBewertung(bewertung);
+        List<Map<String, Object>> sozialverhaltenNoten = sozialNoten.stream()
+                .map(s -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("leistungsbewertungSozialverhaltenId", s.getLeistungsbewertungSozialverhalten().getId());
+                    map.put("note", s.getBenotung());
+                    return map;
+                })
+                .toList();
 
-        return ResponseEntity.ok(result);
+        // ✅ Kombiniertes Response-Objekt
+        Map<String, Object> response = new HashMap<>();
+        response.put("inhaltNoten", inhaltNoten);
+        response.put("sozialverhaltenNoten", sozialverhaltenNoten);
+
+        return ResponseEntity.ok(response);
     }
 
-
-
+    @GetMapping("/leistungsbewertungSozialverhalten")
+    public List<LeistungsbewertungSozialverhalten> getSozialverhalten() {
+        return leistungsbewertungSozialverhaltenRepository.findAll();
+    }
 }

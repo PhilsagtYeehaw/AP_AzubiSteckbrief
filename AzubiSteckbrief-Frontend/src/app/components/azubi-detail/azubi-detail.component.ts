@@ -26,6 +26,9 @@ export class AzubiDetailComponent implements OnInit {
   zeigeReferatDropdown = false;
   zeigeSchulungDropdown = false;
 
+  vermittelteUnterpunkte: string[] = [];
+
+
   constructor(
     private route: ActivatedRoute,
     private azubiService: AzubiService,
@@ -35,13 +38,18 @@ export class AzubiDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.azubiId = +this.route.snapshot.paramMap.get('id')!;
+
     this.azubiService.getAzubiById(this.azubiId).subscribe(data => {
       this.azubi = data;
     });
 
-    // Bewertungen laden
     this.http.get<any[]>(`/api/bewertungen?azubiId=${this.azubiId}`).subscribe(data => {
       this.bewertungen = data;
+    });
+
+    // 🔁 Neue vermittelte Unterpunkte laden
+    this.http.get<string[]>(`/api/vermittlungsstruktur/alle-vermittelten/${this.azubiId}`).subscribe(data => {
+      this.vermittelteUnterpunkte = data;
     });
   }
 
