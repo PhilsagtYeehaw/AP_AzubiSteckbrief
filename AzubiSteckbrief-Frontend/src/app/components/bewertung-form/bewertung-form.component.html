@@ -1,8 +1,10 @@
-<h2>Neue Bewertung</h2>
-<p>Azubi ID: {{ azubiId }}</p>
-<p *ngIf="referatId">Referat ID: {{ referatId }}</p>
-<p *ngIf="schulungId">Schulung ID: {{ schulungId }}</p>
+<h2>Bewertung erstellen</h2>
 
+<app-vermittlungsstruktur
+  [azubiId]="azubiId"
+  (punkteGeaendert)="onPunkteGeaendert($event)">
+</app-vermittlungsstruktur>
+
+<br />
 
 <button (click)="bewertungSpeichern()">Bewertung speichern</button>
-

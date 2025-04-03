@@ -3,17 +3,20 @@ import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import {VermittlungsstrukturComponent} from '../vermittlungsstruktur/vermittlungsstruktur.component';
 
 @Component({
   selector: 'app-bewertung-form',
   templateUrl: './bewertung-form.component.html',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, VermittlungsstrukturComponent],
 })
 export class BewertungFormComponent implements OnInit {
   azubiId!: number;
   referatId?: number;
   schulungId?: number;
+
+  ausgewaehltePunkte: number[] = [];
 
   constructor(private route: ActivatedRoute, private http: HttpClient) {}
 
@@ -30,9 +33,15 @@ export class BewertungFormComponent implements OnInit {
     });
   }
 
+  onPunkteGeaendert(punkteIds: number[]) {
+    this.ausgewaehltePunkte = punkteIds;
+    console.log('Ausgewählte Punkte:', this.ausgewaehltePunkte);
+  }
+
   bewertungSpeichern() {
     const body: any = {
-      azubi: { azubi_id: this.azubiId }
+      azubi: { azubi_id: this.azubiId },
+      erledigte_punkte_ids: this.ausgewaehltePunkte
     };
 
     if (this.referatId) {
@@ -48,5 +57,4 @@ export class BewertungFormComponent implements OnInit {
       error: (err) => console.error('Fehler beim Speichern', err)
     });
   }
-
 }
