@@ -6,6 +6,7 @@ public class BewertungRequestDTO {
     private Long azubiId;
     private Long referatId;
     private Long schulungId;
+    private Long bewertungId; // 👈 HINZUGEFÜGT
     private List<PunktStatus> erledigtePunkte;
 
     public Long getAzubiId() {
@@ -30,6 +31,14 @@ public class BewertungRequestDTO {
 
     public void setSchulungId(Long schulungId) {
         this.schulungId = schulungId;
+    }
+
+    public Long getBewertungId() {
+        return bewertungId;
+    }
+
+    public void setBewertungId(Long bewertungId) {
+        this.bewertungId = bewertungId;
     }
 
     public List<PunktStatus> getErledigtePunkte() {

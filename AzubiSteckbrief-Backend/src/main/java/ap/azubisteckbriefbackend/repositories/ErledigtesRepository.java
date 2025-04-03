@@ -1,5 +1,6 @@
 package ap.azubisteckbriefbackend.repositories;
 
+import ap.azubisteckbriefbackend.entities.Bewertung;
 import ap.azubisteckbriefbackend.entities.Erledigtes;
 import ap.azubisteckbriefbackend.entities.ErledigtesId;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +12,8 @@ public interface ErledigtesRepository extends JpaRepository<Erledigtes, Erledigt
     List<Erledigtes> findByBewertung_BewertungId(Long bewertungId);
 
     List<Erledigtes> findByUnterpunkt_UnterpunkteId(Long unterpunktId);
+
+    void deleteByBewertung(Bewertung bewertung);
 
     boolean existsById(ErledigtesId id);
 }
