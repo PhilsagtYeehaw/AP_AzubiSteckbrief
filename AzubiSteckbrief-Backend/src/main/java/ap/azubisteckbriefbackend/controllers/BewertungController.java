@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import java.util.Map;
+
+
 @RestController
 @RequestMapping("/api/bewertungen")
 @CrossOrigin(origins = "http://localhost:4200")
@@ -65,7 +68,8 @@ public class BewertungController {
             erledigtesRepository.save(erledigtes);
         }
 
-        return ResponseEntity.ok("Bewertung inkl. Punkte gespeichert.");
+        return ResponseEntity.ok().body(Map.of("message", "Bewertung inkl. Punkte gespeichert."));
+
     }
 
     @GetMapping

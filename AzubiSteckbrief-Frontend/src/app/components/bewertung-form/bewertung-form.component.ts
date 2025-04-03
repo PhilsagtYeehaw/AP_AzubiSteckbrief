@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { VermittlungsstrukturComponent } from '../vermittlungsstruktur/vermittlungsstruktur.component';
@@ -16,8 +16,8 @@ export class BewertungFormComponent implements OnInit {
   referatId?: number;
   schulungId?: number;
 
-  // Merkt sich den Status der Checkboxen (true = ausgewählt)
   ausgewaehltePunkte: Record<number, boolean> = {};
+  ausgewaehlteTexte: string[] = [];
 
   constructor(private route: ActivatedRoute, private http: HttpClient) {}
 
@@ -34,35 +34,32 @@ export class BewertungFormComponent implements OnInit {
     });
   }
 
-  // Wird vom VermittlungsstrukturComponent aufgerufen
   onPunkteGeaendert(punkteIds: number[]) {
-    // Setzt alle erhaltenen IDs auf true
     this.ausgewaehltePunkte = {};
     punkteIds.forEach(id => this.ausgewaehltePunkte[id] = true);
-
     console.log('Ausgewählte Punkte:', this.ausgewaehltePunkte);
   }
 
   bewertungSpeichern() {
-    const body: any = {
+    const erledigtePunkte = Object.entries(this.ausgewaehltePunkte)
+      .map(([unterpunktId, status]) => ({
+        unterpunktId: +unterpunktId,
+        status
+      }));
+
+    const payload: any = {
       azubiId: this.azubiId,
-      erledigtePunkte: Object.entries(this.ausgewaehltePunkte).map(([id, status]) => ({
-        unterpunktId: +id,
-        status: status === true
-      }))
+      erledigtePunkte
     };
 
-    if (this.referatId) {
-      body.referatId = this.referatId;
-    } else if (this.schulungId) {
-      body.schulungId = this.schulungId;
-    }
+    if (this.referatId) payload.referatId = this.referatId;
+    if (this.schulungId) payload.schulungId = this.schulungId;
 
-    console.log('Sende Payload:', body);
+    console.log('Sende Payload JSON:', JSON.stringify(payload, null, 2));
 
-    this.http.post('/api/bewertungen', body).subscribe({
-      next: (res) => console.log('Erfolg!', res),
-      error: (err) => console.error('Fehler beim Speichern', err)
+    this.http.post('/api/bewertungen', payload).subscribe({
+      next: (res) => console.log('Erfolgreich gespeichert!', res),
+      error: (err) => console.error('Fehler beim Speichern:', err)
     });
   }
 }

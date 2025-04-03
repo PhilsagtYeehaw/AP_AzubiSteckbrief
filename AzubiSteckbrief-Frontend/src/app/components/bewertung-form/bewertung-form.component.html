@@ -2,9 +2,17 @@
 
 <app-vermittlungsstruktur
   [azubiId]="azubiId"
-  (punkteGeaendert)="onPunkteGeaendert($event)">
+  (punkteGeaendert)="onPunkteGeaendert($event)"
+  (punktTexteGeaendert)="ausgewaehlteTexte = $event">
 </app-vermittlungsstruktur>
+
+<ul *ngIf="ausgewaehlteTexte.length > 0" class="mt-4 text-sm text-gray-700 list-disc list-inside">
+  <li *ngFor="let text of ausgewaehlteTexte">{{ text }}</li>
+</ul>
+
 
 <br />
 
-<button (click)="bewertungSpeichern()">Bewertung speichern</button>
+<button (click)="bewertungSpeichern()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+  Bewertung speichern
+</button>
