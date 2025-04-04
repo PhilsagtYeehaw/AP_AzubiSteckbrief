@@ -1,33 +1,151 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bewertung erstellen</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f9fb;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h2 {
+      color: #007194;
+      font-size: 1.8em;
+      border-bottom: 2px solid #780F2D;
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+    }
+
+    .bewertung-grid {
+      display: flex;
+      width: 100%;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0;
+    }
+
+    .noten-spalte,
+    .struktur-spalte {
+      width: 50%;
+      box-sizing: border-box;
+      padding: 0 20px;
+    }
+
+    .noten-spalte {
+      border-right: 1px solid rgba(0, 0, 0, 0.15);
+    }
+
+    /* Wichtig: Sorgt dafür, dass Angular-Komponenten volle Höhe ausfüllen */
+    app-noten-tabelle,
+    app-vermittlungsstruktur {
+      display: block;
+      height: 100%;
+    }
+
+    /* Liste unter Vermittlungsstruktur */
+    .struktur-spalte ul {
+      background-color: #ffffff;
+      padding: 15px 20px;
+      border-radius: 8px;
+      border-left: 4px solid #007194;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+      margin-top: 10px;
+      font-size: 0.9em;
+      list-style: disc;
+      list-style-position: inside;
+    }
+
+    .struktur-spalte ul li {
+      margin-bottom: 6px;
+      color: #333;
+      line-height: 1.4;
+    }
+
+    /* Speichern-Button */
+    .speichern-button {
+      background-color: #007194;
+      color: white;
+      padding: 10px 20px;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background-color 0.3s;
+      margin-top: 30px;
+    }
+
+    .speichern-button:hover {
+      background-color: #005e75;
+    }
+
+    /* Sozialverhalten */
+    app-sozialverhalten-tabelle {
+      display: block;
+      width: 100%;
+      margin-top: 30px;
+      padding-left: 19px;
+    }
+
+    /* Responsive: untereinander bei kleiner Breite */
+    @media (max-width: 900px) {
+      .bewertung-grid {
+        flex-direction: column;
+      }
+
+      .noten-spalte,
+      .struktur-spalte {
+        width: 100%;
+        padding: 0;
+        border-right: none;
+      }
+
+      .noten-spalte {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+        margin-bottom: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
 <h2>Bewertung erstellen</h2>
 
-<app-noten-tabelle
-  [noten]="notenAuswahl"
-  (notenGeaendert)="notenAuswahl = $event">
-</app-noten-tabelle>
+<div class="bewertung-grid">
+  <div class="noten-spalte">
+    <app-noten-tabelle
+      [noten]="notenAuswahl"
+      (notenGeaendert)="notenAuswahl = $event">
+    </app-noten-tabelle>
+  </div>
 
-<app-vermittlungsstruktur
-  [azubiId]="azubiId"
-  [bewertungId]="bewertungId"
-  (punkteGeaendert)="onPunkteGeaendert($event)"
-  (punktTexteGeaendert)="onPunktTexteGeaendert($event)">
-</app-vermittlungsstruktur>
+  <div class="struktur-spalte">
+    <app-vermittlungsstruktur
+      [azubiId]="azubiId"
+      [bewertungId]="bewertungId"
+      (punkteGeaendert)="onPunkteGeaendert($event)"
+      (punktTexteGeaendert)="onPunktTexteGeaendert($event)">
+    </app-vermittlungsstruktur>
 
-<ul *ngIf="ausgewaehlteTexte.length > 0" class="mt-4 text-sm text-gray-700 list-disc list-inside">
-  <li *ngFor="let text of ausgewaehlteTexte">{{ text }}</li>
-</ul>
-
-<br />
+    <ul *ngIf="ausgewaehlteTexte.length > 0">
+      <li *ngFor="let text of ausgewaehlteTexte">{{ text }}</li>
+    </ul>
+  </div>
+</div>
 
 <app-sozialverhalten-tabelle
   [noten]="sozialverhaltenAuswahl"
   (notenGeaendert)="sozialverhaltenAuswahl = $event">
 </app-sozialverhalten-tabelle>
 
-
-
 <button
   (click)="bewertungSpeichern()"
-  class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
->
+  class="speichern-button">
   Bewertung speichern
 </button>
+
+</body>
+</html>

@@ -1,27 +1,92 @@
-<div class="mt-6">
-  <h3 class="text-lg font-semibold mb-2">Notenvergabe</h3>
-  <table class="w-full border border-gray-300 text-sm">
-    <thead>
-    <tr class="bg-gray-100">
-      <th class="border px-2 py-1 text-left">Kategorie</th>
-      <th class="border px-2 py-1 text-left">Inhalt</th>
-      <th class="border px-2 py-1 text-left">Note (1-6)</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr *ngFor="let eintrag of leistungsbewertungInhalte">
-      <td class="border px-2 py-1">{{ eintrag.kategorie }}</td>
-      <td class="border px-2 py-1">{{ eintrag.inhalt }}</td>
-      <td class="border px-2 py-1">
-        <select
-          class="border rounded px-1 py-0.5"
-          [(ngModel)]="noten[eintrag.id]"
-          (ngModelChange)="onNoteChange(eintrag.id, $event)">
-          <option [ngValue]="undefined" disabled>– wählen –</option>
-          <option *ngFor="let note of ['1','2','3','4','5','6']" [value]="note">{{ note }}</option>
-        </select>
-      </td>
-    </tr>
-    </tbody>
-  </table>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f9fb;
+        }
+
+        .noten-container h3 {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #007194;
+            border-bottom: 2px solid #780F2D;
+            padding-bottom: 6px;
+            margin-bottom: 25px; /* <-- hier geändert: vorher 15px */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+            background-color: white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        thead {
+            background-color: #e5f3f5;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            font-weight: bold;
+            color: #333;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        select {
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background-color: #fff;
+            font-size: 0.95em;
+        }
+
+        select:focus {
+            border-color: #007194;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0,113,148,0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div class="noten-container">
+    <h3>Notenvergabe</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>Kategorie</th>
+            <th>Inhalt</th>
+            <th>Note (1–6)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let eintrag of leistungsbewertungInhalte">
+            <td>{{ eintrag.kategorie }}</td>
+            <td>{{ eintrag.inhalt }}</td>
+            <td>
+                <select
+                        [(ngModel)]="noten[eintrag.id]"
+                        (ngModelChange)="onNoteChange(eintrag.id, $event)">
+                    <option [ngValue]="undefined" disabled>– wählen –</option>
+                    <option *ngFor="let note of ['1','2','3','4','5','6']" [value]="note">{{ note }}</option>
+                </select>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 </div>
+
+</body>
+</html>
