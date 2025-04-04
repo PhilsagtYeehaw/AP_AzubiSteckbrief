@@ -1,11 +1,99 @@
-<div class="container mx-auto p-4">
-  <h1 class="text-3xl font-bold mb-6">Übersicht Auszubildende</h1>
-  <div *ngFor="let jahr of azubiJahre">
-    <h2 class="text-2xl font-semibold mt-4">Lehrjahr {{ jahr }}</h2>
-    <ul>
-      <li *ngFor="let azubi of getAzubisByJahr(jahr)" class="p-2 border rounded mb-2 hover:bg-gray-100 cursor-pointer">
-        <a [routerLink]="['/azubi', azubi.azubi_id]" class="text-blue-600 hover:underline">{{ azubi.vorname }} {{ azubi.nachname }}</a>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Übersicht Auszubildende</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f9fb;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      color: #007194;
+      text-align: center;
+      border-bottom: 4px solid #780F2D;
+      padding-bottom: 10px;
+      margin-bottom: 40px;
+    }
+
+    .grid-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: space-between;
+    }
+
+    .jahr-box {
+      flex: 1 1 30%;
+      background-color: #ffffff;
+      border-top: 5px solid #007194;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .jahr-box h2 {
+      color: #780F2D;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .azubi-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .azubi-list li {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      transition: background-color 0.3s;
+    }
+
+    .azubi-list li:hover {
+      background-color: #e5f3f5;
+    }
+
+    .azubi-list a {
+      text-decoration: none;
+      color: #007194;
+      font-weight: bold;
+    }
+
+    .azubi-list a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .jahr-box {
+        flex: 1 1 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Übersicht Auszubildende</h1>
+
+<div class="grid-container">
+  <div class="jahr-box" *ngFor="let jahr of azubiJahre">
+    <h2>Lehrjahr {{ jahr }}</h2>
+    <ul class="azubi-list">
+      <li *ngFor="let azubi of getAzubisByJahr(jahr)">
+        <a [routerLink]="['/azubi', azubi.azubi_id]">
+          {{ azubi.vorname }} {{ azubi.nachname }}
+        </a>
       </li>
     </ul>
   </div>
 </div>
+
+</body>
+</html>

@@ -1,37 +1,125 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Vermittlungsstruktur</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f9fb;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Neues Titel-Design */
+        .struktur-titel {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #007194;
+            border-bottom: 2px solid #780F2D;
+            padding-bottom: 6px;
+            margin-top: 2px;      /* <-- das ist neu */
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+
+
+        .struktur-titel:hover {
+            color: #004c5c;
+        }
+
+        .struktur-box {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-left: 6px solid #007194;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .beruf {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #007194;
+            cursor: pointer;
+            padding: 8px 0;
+        }
+
+        .vermittlungen {
+            margin-left: 20px;
+            border-left: 4px solid #780F2D;
+            padding-left: 15px;
+        }
+
+        .vermittlung {
+            font-weight: 500;
+            color: #780F2D;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .vermittlung:hover {
+            text-decoration: underline;
+        }
+
+        .unterpunkte {
+            margin-left: 20px;
+            border-left: 3px solid #ccc;
+            padding-left: 12px;
+            margin-top: 6px;
+        }
+
+        .unterpunkte label {
+            display: block;
+            margin: 6px 0;
+            cursor: pointer;
+            color: #333;
+        }
+
+        input[type="checkbox"] {
+            accent-color: #007194;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+
 <div class="p-4">
-  <div
-    (click)="toggleDropdown()"
-    class="cursor-pointer text-blue-600 underline hover:text-blue-800"
-  >
-    Vermittlungsstruktur anzeigen
-  </div>
-
-  <div *ngIf="dropdownGeoeffnet" class="mt-4">
-    <div *ngFor="let beruf of vermittlungsstruktur" class="mb-4 border p-3 rounded shadow">
-      <div (click)="toggleBeruf(beruf)" class="font-bold cursor-pointer">
-        {{ beruf.ausbildungsberufsbild }}
-      </div>
-
-      <div *ngIf="offeneBerufe.includes(beruf.ausbildungsberufsbildId)" class="ml-4 mt-2">
-        <div *ngFor="let vermittlung of beruf.vermittlungen" class="mb-2">
-          <div (click)="toggleVermittlung(vermittlung)" class="font-medium cursor-pointer">
-            {{ vermittlung.vermittlung }}
-          </div>
-
-          <div *ngIf="offeneVermittlungen.includes(vermittlung.vermittlungId)" class="ml-4 mt-2">
-            <div *ngFor="let punkt of vermittlung.unterpunkteDTO">
-              <label class="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  [checked]="ausgewaehltePunkte[punkt.unterpunktId]"
-                  (change)="checkboxGeaendert(punkt, $event)"
-                />
-                {{ punkt.unterpunkt }}
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
+    <!-- Neuer Titel ohne Unterstrich -->
+    <div (click)="toggleDropdown()" class="struktur-titel">
+        Azubi-Steckbrief anzeigen
     </div>
-  </div>
+
+    <div *ngIf="dropdownGeoeffnet" class="mt-4">
+        <div *ngFor="let beruf of vermittlungsstruktur" class="struktur-box">
+            <div (click)="toggleBeruf(beruf)" class="beruf">
+                {{ beruf.ausbildungsberufsbild }}
+            </div>
+
+            <div *ngIf="offeneBerufe.includes(beruf.ausbildungsberufsbildId)" class="vermittlungen">
+                <div *ngFor="let vermittlung of beruf.vermittlungen">
+                    <div (click)="toggleVermittlung(vermittlung)" class="vermittlung">
+                        {{ vermittlung.vermittlung }}
+                    </div>
+
+                    <div *ngIf="offeneVermittlungen.includes(vermittlung.vermittlungId)" class="unterpunkte">
+                        <div *ngFor="let punkt of vermittlung.unterpunkteDTO">
+                            <label>
+                                <input
+                                        type="checkbox"
+                                        [checked]="ausgewaehltePunkte[punkt.unterpunktId]"
+                                        (change)="checkboxGeaendert(punkt, $event)"
+                                />
+                                {{ punkt.unterpunkt }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+</body>
+</html>
